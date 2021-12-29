@@ -1,0 +1,6 @@
+fints
+pydantic
+typer
+shellingham
+colorama
+tabulate

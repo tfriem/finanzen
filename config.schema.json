@@ -1,0 +1,87 @@
+{
+  "title": "Config",
+  "type": "object",
+  "properties": {
+    "banks": {
+      "title": "Banks",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Bank"
+      }
+    },
+    "mappings": {
+      "title": "Mappings",
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "banks",
+    "mappings"
+  ],
+  "definitions": {
+    "Account": {
+      "title": "Account",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "iban": {
+          "title": "Iban",
+          "type": "string"
+        },
+        "ledger_name": {
+          "title": "Ledger Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "iban",
+        "ledger_name"
+      ]
+    },
+    "Bank": {
+      "title": "Bank",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "blz": {
+          "title": "Blz",
+          "type": "string"
+        },
+        "user": {
+          "title": "User",
+          "type": "string"
+        },
+        "fints_url": {
+          "title": "Fints Url",
+          "type": "string"
+        },
+        "pin": {
+          "title": "Pin",
+          "type": "string"
+        },
+        "accounts": {
+          "title": "Accounts",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Account"
+          }
+        }
+      },
+      "required": [
+        "blz",
+        "user",
+        "fints_url",
+        "accounts"
+      ]
+    }
+  }
+}
