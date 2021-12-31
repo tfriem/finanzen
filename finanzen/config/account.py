@@ -10,3 +10,4 @@ class Account(BaseModel):
 
     class Config:
         allow_mutation = False
+        frozen = True

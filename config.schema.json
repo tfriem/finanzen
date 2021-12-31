@@ -13,7 +13,7 @@
       "title": "Mappings",
       "type": "array",
       "items": {
-        "type": "object"
+        "$ref": "#/definitions/TransactionMapping"
       }
     }
   },
@@ -81,6 +81,35 @@
         "user",
         "fints_url",
         "accounts"
+      ]
+    },
+    "TransactionMapping": {
+      "title": "TransactionMapping",
+      "type": "object",
+      "properties": {
+        "posting_text": {
+          "title": "Posting Text",
+          "type": "string"
+        },
+        "purpose": {
+          "title": "Purpose",
+          "type": "string"
+        },
+        "applicant_name": {
+          "title": "Applicant Name",
+          "type": "string"
+        },
+        "applicant_iban": {
+          "title": "Applicant Iban",
+          "type": "string"
+        },
+        "credit_account": {
+          "title": "Credit Account",
+          "type": "string"
+        }
+      },
+      "required": [
+        "credit_account"
       ]
     }
   }

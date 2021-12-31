@@ -5,6 +5,7 @@ import typer
 
 from finanzen.bankinterface import get_transactions
 from finanzen.config.config import Config
+from finanzen.ledger import write_transactions
 
 logging.basicConfig(level=logging.WARN)
 
@@ -20,12 +21,13 @@ def generate_config_schema():
 
 
 @app.command()
-def import_transactions(config_name="config.json"):
+def import_transactions(config_name="config.json", ledger_name="main.bean"):
     config_path = Path.joinpath(Path().resolve(), config_name)
     config = Config.parse_file(config_path)
 
     for bank in config.banks:
-        get_transactions(bank)
+        transactions = get_transactions(bank)
+        write_transactions(transactions, config.mappings)
 
 
 def main():
