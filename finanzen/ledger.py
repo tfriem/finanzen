@@ -7,8 +7,8 @@ from jinja2 import Template
 
 from finanzen.config.account import Account
 from finanzen.config.mapping import TransactionMapping
-from finanzen.templatedata import TemplateData
-from finanzen.transaction import Transaction
+from finanzen.data.templatedata import TemplateData
+from finanzen.data.transaction import AccountWithTransactions, Transaction
 
 template = """
 {{date}} txn "{{payee}} {{posting}} {{purpose}}"
@@ -19,14 +19,15 @@ template = """
 
 
 def write_transactions(
-    transactions_per_account: Dict[Account, List[Transaction]],
+    accounts_with_transactions: List[AccountWithTransactions],
     mappings: List[TransactionMapping],
 ):
-    if len(transactions_per_account) < 1:
+    if len(accounts_with_transactions) < 1:
         return
 
-    for account in transactions_per_account:
-        transactions = transactions_per_account[account]
+    for entry in accounts_with_transactions:
+        account = entry.account
+        transactions = entry.transactions
 
         if len(transactions) < 1:
             continue
@@ -76,10 +77,6 @@ def _find_mapping(transaction: Transaction, mappings: List[TransactionMapping]):
         )
 
         if matches:
-            typer.secho(
-                f"Found matching mapping {mapping} for transaction {transaction}",
-                fg=typer.colors.GREEN,
-            )
             return mapping
 
     return None

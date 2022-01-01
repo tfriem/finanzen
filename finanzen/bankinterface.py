@@ -1,11 +1,9 @@
-import logging
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from re import sub
 from typing import Dict, List
 
 import typer
-from click.termui import confirm
 from fints.client import FinTS3PinTanClient, NeedTANResponse
 from fints.models import SEPAAccount
 from mt940.models import Transaction as FintsTransaction
@@ -13,16 +11,16 @@ from tabulate import tabulate
 
 from finanzen.config.account import Account
 from finanzen.config.bank import Bank
-from finanzen.transaction import Transaction
+from finanzen.data.transaction import AccountWithTransactions, Transaction
 
 
-def get_transactions(bank: Bank) -> Dict[Account, List[Transaction]]:
+def get_transactions(bank: Bank) -> List[AccountWithTransactions]:
     client = create_client(bank)
     with client:
         sepa_accounts: List[SEPAAccount] = client.get_sepa_accounts()
         print_accounts(bank, sepa_accounts)
 
-        transactions_per_account: Dict[Account, List[Transaction]] = {}
+        accounts_with_transactions: List[AccountWithTransactions] = []
         for sepa_account in sepa_accounts:
             account = next(
                 (a for a in bank.accounts if a.iban == sepa_account.iban), None
@@ -48,9 +46,11 @@ def get_transactions(bank: Bank) -> Dict[Account, List[Transaction]]:
                 fints_transactions = response
 
             transactions = transform_transactions(fints_transactions)
-            transactions_per_account[account] = transactions
+            accounts_with_transactions.append(
+                AccountWithTransactions(account=account, transactions=transactions)
+            )
 
-        return transactions_per_account
+        return accounts_with_transactions
 
 
 def create_client(bank: Bank) -> FinTS3PinTanClient:
@@ -75,7 +75,11 @@ def print_accounts(bank: Bank, accounts: List[SEPAAccount]):
 def transform_transactions(transactions: List[FintsTransaction]) -> List[Transaction]:
     return [
         Transaction(
-            date=t.data["date"],
+            date=date(
+                t.data["date"].year,
+                t.data["date"].month,
+                t.data["date"].day,
+            ),
             amount=t.data["amount"].amount,
             posting_text=t.data["posting_text"],
             purpose=t.data["purpose"],
