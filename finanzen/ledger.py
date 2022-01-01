@@ -1,6 +1,7 @@
+import hashlib
+import os
 import re
-from os import write
-from typing import Dict, List, Mapping
+from typing import List
 
 import typer
 from jinja2 import Template
@@ -16,6 +17,9 @@ template = """
     {{debit_account}}   {{debit}} {{currency}}
     {{credit_account}}   {{credit}} {{currency}}
 """
+
+MD5_REGEX = r"md5sum: (.*)"
+LEDGER_FILE = "transactions.bean"
 
 
 def write_transactions(
@@ -33,6 +37,7 @@ def write_transactions(
             continue
 
         ledger_entries = []
+        md5s = _get_transactions_md5s()
 
         for transaction in transactions:
             # Find mapping for transaction in config
@@ -47,14 +52,16 @@ def write_transactions(
             # Translate transaction data to ledger data
             data = _create_template_data(account, transaction, matched_mapping)
 
-            # TODO: Check if transaction is already in ledger file
-            _check_if_ledger_has_transaction()
+            if data.md5sum in md5s:
+                typer.secho(
+                    f"Transaction {transaction} already in file", fg=typer.colors.YELLOW
+                )
+                continue
 
             # Render template with ledger data
             ledger_entries.append(_render_template(data))
 
-        # TODO: Append rendered template to ledger file
-        with open("transactions.bean", "w+") as f:
+        with open(LEDGER_FILE, "a+") as f:
             for entry in ledger_entries:
                 f.write(entry)
 
@@ -95,12 +102,27 @@ def _check_field(pattern, value) -> bool:
 def _create_template_data(
     account: Account, transaction: Transaction, mapping: TransactionMapping
 ) -> TemplateData:
+    md5 = hashlib.md5()
+
+    md5.update(transaction.date.isoformat().encode("UTF-8"))
+    md5.update(transaction.amount.__str__().encode("UTF-8"))
+    md5.update(transaction.posting_text.encode("UTF-8"))
+    if transaction.purpose:
+        md5.update(transaction.purpose.encode("UTF-8"))
+
+    if transaction.applicant_name:
+        md5.update(transaction.applicant_name.encode("UTF-8"))
+
+    if transaction.applicant_iban:
+        md5.update(transaction.applicant_iban.encode("UTF-8"))
+
+    md5sum = md5.hexdigest()
     return TemplateData(
         date=transaction.date,
         payee=transaction.applicant_name,
         posting=transaction.posting_text,
         purpose=transaction.purpose,
-        md5sum="",
+        md5sum=md5sum,
         credit_account=mapping.credit_account,
         debit_account=account.ledger_name,
         credit=-transaction.amount,
@@ -109,9 +131,13 @@ def _create_template_data(
     )
 
 
-def _check_if_ledger_has_transaction():
-    # TODO: Implement
-    pass
+def _get_transactions_md5s() -> List[str]:
+    if not os.path.isfile(LEDGER_FILE):
+        return []
+
+    with open(LEDGER_FILE, "r") as f:
+        data = f.read()
+        return re.findall(MD5_REGEX, data)
 
 
 def _render_template(data: TemplateData):

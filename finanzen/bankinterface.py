@@ -1,7 +1,5 @@
-from datetime import date, datetime, timedelta
-from decimal import Decimal
-from re import sub
-from typing import Dict, List
+from datetime import date, timedelta
+from typing import List
 
 import typer
 from fints.client import FinTS3PinTanClient, NeedTANResponse
