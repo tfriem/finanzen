@@ -42,6 +42,8 @@ def read_transactions() -> Dict[str, List[AccountWithTransactions]]:
     result: Dict[str, List[AccountWithTransactions]] = {}
 
     for file in files:
+        if file == ".keep":
+            continue
         data = TransactionStorage.parse_file(f"{processing_directory}/{file}")
         result[file] = data.accounts_with_transactions
 

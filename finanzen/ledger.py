@@ -43,11 +43,9 @@ def write_transactions(
             # Find mapping for transaction in config
             matched_mapping = _find_mapping(transaction, mappings)
             if matched_mapping is None:
-                typer.secho(
-                    f"No matching mapping found for transaction {transaction}",
-                    fg=typer.colors.RED,
+                raise Exception(
+                    f"No matching mapping found for transaction {transaction}"
                 )
-                continue
 
             # Translate transaction data to ledger data
             data = _create_template_data(account, transaction, matched_mapping)

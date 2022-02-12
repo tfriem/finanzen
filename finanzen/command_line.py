@@ -1,4 +1,5 @@
 import logging
+from datetime import date
 from pathlib import Path
 
 import typer
@@ -26,11 +27,13 @@ def generate_config_schema():
 
 
 @app.command()
-def fetch_transactions(config_file="config.json"):
+def fetch_transactions(
+    start_date=date(date.today().year, 1, 1), config_file="config.json"
+):
     config = read_config(config_file)
 
     for bank in config.banks:
-        accounts_with_transactions = get_transactions(bank)
+        accounts_with_transactions = get_transactions(bank, start_date)
         write_transactions_to_file(accounts_with_transactions)
 
 
@@ -42,8 +45,11 @@ def import_transactions(config_file="config.json", ledger_file="transactions.bea
     for file in file_transactions:
         typer.echo(f"Importing {file}")
         accounts_with_transactions = file_transactions[file]
-        write_transactions(accounts_with_transactions, config.mappings)
-        ack_file(file)
+        try:
+            write_transactions(accounts_with_transactions, config.mappings)
+            ack_file(file)
+        except Exception as e:
+            typer.secho(e, fg=typer.colors.RED)
 
     typer.secho("All imports finished", fg=typer.colors.GREEN)
 

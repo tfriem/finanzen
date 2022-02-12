@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date
 from typing import List
 
 import typer
@@ -12,7 +12,7 @@ from finanzen.config.bank import Bank
 from finanzen.data.transaction import AccountWithTransactions, Transaction
 
 
-def get_transactions(bank: Bank) -> List[AccountWithTransactions]:
+def get_transactions(bank: Bank, start_date) -> List[AccountWithTransactions]:
     client = create_client(bank)
     with client:
         sepa_accounts: List[SEPAAccount] = client.get_sepa_accounts()
@@ -33,7 +33,7 @@ def get_transactions(bank: Bank) -> List[AccountWithTransactions]:
 
             response = client.get_transactions(
                 sepa_account,
-                start_date=date.today() - timedelta(days=14),
+                start_date=date.fromisoformat(start_date),
                 end_date=date.today(),
             )
 
